@@ -1,0 +1,36 @@
+# Maintainer: btstream <btstream@gmail.com>
+pkgname=('ttf-texlive-fontsextra' 'otf-texlive-fontsextra')
+pkgbase="texlive-fontsextra"
+pkgver=2025.2
+pkgrel=2
+# epoch=
+pkgdesc="TrueType and OpenType fonts from texlive"
+arch=("any")
+url=""
+license=('GPL')
+# depends=()
+# makedepends=()
+# checkdepends=()
+# optdepends=()
+# provides=()
+conflicts=("texlive-fontsextra")
+# replaces=()
+# backup=()
+# options=()
+# install=
+# changelog=
+source=("https://mirrors.ustc.edu.cn/archlinux/extra/os/x86_64/${pkgbase}-${pkgver}-${pkgrel}-any.pkg.tar.zst")
+noextract=()
+sha256sums=('a7ee55a960c0578daf303645e0f72b71f7890ef68b0a968d20f18f762f81edbb')
+
+package_ttf-texlive-fontsextra() {
+    pkgdesc="TrueType fonts from texlive"
+    install -dm755 "${pkgdir}/usr/share/fonts/texlive-fontsextra/"
+    cp -r "${srcdir}/usr/share/texmf-dist/fonts/truetype" "${pkgdir}/usr/share/fonts/texlive-fontsextra/"
+}
+
+package_otf-texlive-fontsextra() {
+    pkgdesc="OpenType fonts from texlive"
+    install -dm755 "${pkgdir}/usr/share/fonts/texlive-fontsextra/"
+    cp -r "${srcdir}/usr/share/texmf-dist/fonts/opentype" "${pkgdir}/usr/share/fonts/texlive-fontsextra/"
+}

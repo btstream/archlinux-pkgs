@@ -1,0 +1,70 @@
+# Maintainer: yifwon <wyf9661 [at] gmail.com>
+pkgname=('wps-office-bin-bwrap')
+pkgver=12.1.2.22571
+pkgrel=1
+pkgdesc="WPS Office, is an office productivity suite."
+arch=('x86_64')
+url="https://linux.wps.cn"
+# considering https://github.com/microcai/gentoo-zh/blob/996092a2363f05082ccc4297896a3e82a5bb7680/app-office/wps-office/wps-office-12.1.0.17900.ebuild#L12C58-L12C79
+# _srcurl="https://dogfood.gnupg.uk/wps302"
+license=('LicenseRef-WPS-EULA')
+makedepends=(
+    'tar')
+depends=(
+    'fontconfig' 'libxrender' 'xdg-utils' 'glu'
+    'libpulse' 'libxss' 'sqlite' 'libtool' 'libtiff'
+    'libxslt' 'freetype2')
+optdepends=(
+    'wps-office-fonts: FZ TTF fonts provided by wps office'
+    'cups: for printing support'
+    'libjpeg-turbo: JPEG image codec support'
+    'libpng12: PNG image codec support'
+    'ttf-wps-fonts: Symbol fonts required by wps-office'
+    'ttf-ms-fonts: Microsft Fonts recommended for wps-office')
+conflicts=(wps-office-bin)
+provides=(wps-office-bin)
+options=(!strip !zipman !debug)
+
+# https://gitlab.com/cwittlut/wps-tsk/-/blob/main/tsk.sh?ref_type=heads by Ryan Tsien
+# https://pastebin.com/29TeRUMj by Asuka Minato
+_get_source_url() {
+    local furl="https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/${pkgver##*.}/wps-office_${pkgver}.AK.preread.sw_480057_$1.deb"
+    local uri="${furl#https://wps-linux-personal.wpscdn.cn}"
+    local secrityKey='7f8faaaa468174dc1c9cd62e5f218a5b'
+    local timestamp10=$(date '+%s')
+    local md5hash=$(echo -n "${secrityKey}${uri}${timestamp10}" | md5sum)
+    #echo "$md5hash"
+    #echo "$md5hash"
+    #exit 1
+    echo "${furl}?t=${timestamp10}&k=${md5hash%% *}"
+}
+
+#source_x86_64=("https://mirrors.163.com/ubuntukylin/pool/partner/wps-office_${pkgver}_amd64.deb")
+source_x86_64=("wps-office_${pkgver}_amd64.deb::$(_get_source_url amd64)")
+# source_x86_64=("wps-office_${pkgver}_amd64.deb::${_srcurl}/${pkgver}/amd64")
+sha1sums=('68c17ea380cd27a5c8ad573f5a92857142dd1c90')
+sha1sums_x86_64=('ded0a7ba0f6c419b4ae10388cf12b816b3fb0e8f')
+source=(wps-bwrap)
+
+package() {
+    xz -df data.tar.xz
+    tar --no-same-owner -C "${pkgdir}" -xf data.tar --exclude './usr/share/fonts' \
+        --exclude './usr/share/desktop-directories' ./opt/kingsoft ./usr
+
+    cd "${pkgdir}"
+    # use system lib
+    rm opt/kingsoft/wps-office/office6/lib{jpeg,stdc++}.so*
+
+    # fix python2 call
+    # sed -i "s/python -c 'import sys, urllib; print urllib\.unquote(sys\.argv\[1\])'/\
+    # python -c 'import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]))'/" usr/bin/wps
+
+    # mv bin to /opt/office/bin
+    mv usr/bin/ opt/kingsoft/wps-office/office6/
+
+    install -d usr/bin
+    install -m755 ${srcdir}/wps-bwrap usr/bin/wps
+    install -m755 ${srcdir}/wps-bwrap usr/bin/wpp
+    install -m755 ${srcdir}/wps-bwrap usr/bin/et
+    install -m755 ${srcdir}/wps-bwrap usr/bin/wpspdf
+}
