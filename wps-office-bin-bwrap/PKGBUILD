@@ -1,7 +1,7 @@
 # Maintainer: yifwon <wyf9661 [at] gmail.com>
 pkgname=('wps-office-bin-bwrap')
 pkgver=12.1.2.23578
-pkgrel=1
+pkgrel=2
 pkgdesc="WPS Office, is an office productivity suite."
 arch=('x86_64')
 url="https://linux.wps.cn"
@@ -58,6 +58,9 @@ package() {
     # fix python2 call
     # sed -i "s/python -c 'import sys, urllib; print urllib\.unquote(sys\.argv\[1\])'/\
     # python -c 'import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]))'/" usr/bin/wps
+
+    # remove mime type
+    rm usr/share/mime/packages/custom-wps-office.xml
 
     # mv bin to /opt/office/bin
     mv usr/bin/ opt/kingsoft/wps-office/office6/
