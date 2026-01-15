@@ -1,5 +1,5 @@
 
-# 一些常用的Archlinux PKG
+# 一些自用的Archlinux PKG
 
 ## 使用方式
 
