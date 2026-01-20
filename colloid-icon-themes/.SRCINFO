@@ -1,0 +1,22 @@
+pkgbase = colloid-icon-theme-git
+	pkgver = 2025.07.19.r61.ge89ab112
+	pkgrel = 1
+	url = https://github.com/btstream/Colloid-icon-theme
+	arch = any
+	license = GPL-3.0-only
+	makedepends = git
+	options = !strip
+	source = git+https://github.com/btstream/Colloid-icon-theme.git
+	sha256sums = SKIP
+
+pkgname = colloid-icon-theme-3x-git
+	pkgdesc = Modern and clean icon theme for Linux
+	depends = gtk-update-icon-cache
+	depends = hicolor-icon-theme
+	provides = colloid-icon-theme
+	conflicts = colloid-icon-theme
+
+pkgname = colloid-cursors-git
+	pkgdesc = An x-cursor theme inspired by Colloid theme and based on capitaine-cursors
+	provides = colloid-cursors
+	conflicts = colloid-cursors

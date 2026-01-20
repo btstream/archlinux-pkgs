@@ -1,0 +1,15 @@
+pkgbase = texlive-fontsextra
+	pkgdesc = TrueType and OpenType fonts from texlive
+	pkgver = 2025.2
+	pkgrel = 2
+	arch = any
+	license = GPL
+	conflicts = texlive-fontsextra
+	source = https://mirrors.ustc.edu.cn/archlinux/extra/os/x86_64/texlive-fontsextra-2025.2-2-any.pkg.tar.zst
+	sha256sums = a7ee55a960c0578daf303645e0f72b71f7890ef68b0a968d20f18f762f81edbb
+
+pkgname = ttf-texlive-fontsextra
+	pkgdesc = TrueType fonts from texlive
+
+pkgname = otf-texlive-fontsextra
+	pkgdesc = OpenType fonts from texlive

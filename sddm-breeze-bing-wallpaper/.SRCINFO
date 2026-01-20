@@ -1,0 +1,20 @@
+pkgbase = sddm-breeze-bing-wallpaper
+	pkgdesc = Automatically set Bing daily wallpaper as SDDM breeze theme background
+	pkgver = 1.1
+	pkgrel = 1
+	url = https://github.com/btstream/sddm-breeze-bing-wallpaper
+	arch = any
+	license = MIT
+	depends = python
+	depends = python-requests
+	depends = sddm
+	source = sddm-breeze-bing-wallpaper.py
+	source = sddm-breeze-bing-wallpaper.service
+	source = sddm-breeze-bing-wallpaper.timer
+	source = theme.conf.user
+	md5sums = df9ed4c34119ba2108532f20fa323d20
+	md5sums = f16f002bf7482894f819463e7755f717
+	md5sums = 014e2161eab4379d340be395e333a07c
+	md5sums = 620dbce94ff5d50e5c7f8437be1c9ab9
+
+pkgname = sddm-breeze-bing-wallpaper

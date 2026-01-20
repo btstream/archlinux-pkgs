@@ -1,0 +1,36 @@
+pkgbase = wps-office-bin-bwrap
+	pkgdesc = WPS Office, is an office productivity suite.
+	pkgver = 12.1.2.24722
+	pkgrel = 1
+	url = https://linux.wps.cn
+	arch = x86_64
+	license = LicenseRef-WPS-EULA
+	makedepends = tar
+	depends = fontconfig
+	depends = libxrender
+	depends = xdg-utils
+	depends = glu
+	depends = libpulse
+	depends = libxss
+	depends = sqlite
+	depends = libtool
+	depends = libtiff
+	depends = libxslt
+	depends = freetype2
+	optdepends = wps-office-fonts: FZ TTF fonts provided by wps office
+	optdepends = cups: for printing support
+	optdepends = libjpeg-turbo: JPEG image codec support
+	optdepends = libpng12: PNG image codec support
+	optdepends = ttf-wps-fonts: Symbol fonts required by wps-office
+	optdepends = ttf-ms-fonts: Microsft Fonts recommended for wps-office
+	provides = wps-office-bin
+	conflicts = wps-office-bin
+	options = !strip
+	options = !zipman
+	options = !debug
+	source = wps-bwrap
+	sha1sums = ef2e3f148b589f818eb5b95d229086e8329ac61a
+	source_x86_64 = wps-office_12.1.2.24722_amd64.deb::https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/24722/wps-office_12.1.2.24722.AK.preread.sw_612408_amd64.deb?t=1768897889&k=d7858b7a145124b44332d76b2e11beee
+	sha1sums_x86_64 = b5e3fb6cbc7fa164a33c6c872a0b3998c2836911
+
+pkgname = wps-office-bin-bwrap
