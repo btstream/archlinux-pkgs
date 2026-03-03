@@ -1,7 +1,7 @@
 # Maintainer: yifwon <wyf9661 [at] gmail.com>
 pkgname=('wps-office-bin-bwrap')
 pkgver=12.1.2.24722
-pkgrel=3
+pkgrel=4
 pkgdesc="WPS Office, is an office productivity suite."
 arch=('x86_64')
 url="https://linux.wps.cn"
@@ -11,7 +11,7 @@ license=('LicenseRef-WPS-EULA')
 makedepends=(
     'tar')
 depends=(
-    'fontconfig' 'libxrender' 'xdg-utils' 'glu'
+    'fontconfig' 'libxrender' 'xdg-utils' 'xdg-user-dirs' 'bubblewrap' 'glu'
     'libpulse' 'libxss' 'sqlite' 'libtool' 'libtiff'
     'libxslt' 'freetype2')
 optdepends=(
@@ -42,7 +42,7 @@ _get_source_url() {
 #source_x86_64=("https://mirrors.163.com/ubuntukylin/pool/partner/wps-office_${pkgver}_amd64.deb")
 source_x86_64=("wps-office_${pkgver}_amd64.deb::$(_get_source_url amd64)")
 # source_x86_64=("wps-office_${pkgver}_amd64.deb::${_srcurl}/${pkgver}/amd64")
-sha1sums=('436c5e28d9500b6470c6b6e6d29be0f563f7d6ac')
+sha1sums=('0f36ad4e15798d87ca0ba8ded932f567955f8f77')
 sha1sums_x86_64=('b5e3fb6cbc7fa164a33c6c872a0b3998c2836911')
 source=(wps-bwrap)
 
