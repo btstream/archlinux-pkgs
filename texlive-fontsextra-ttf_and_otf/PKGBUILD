@@ -1,8 +1,9 @@
 # Maintainer: btstream <btstream@gmail.com>
 pkgname=('ttf-texlive-fontsextra' 'otf-texlive-fontsextra')
 pkgbase="texlive-fontsextra"
-pkgver=2025.2
-pkgrel=2
+pkgver=2026.0
+pkgrel=1
+_pkgrel=3
 # epoch=
 pkgdesc="TrueType and OpenType fonts from texlive"
 arch=("any")
@@ -19,9 +20,9 @@ conflicts=("texlive-fontsextra")
 # options=()
 # install=
 # changelog=
-source=("https://mirrors.ustc.edu.cn/archlinux/extra/os/x86_64/${pkgbase}-${pkgver}-${pkgrel}-any.pkg.tar.zst")
+source=("https://mirrors.ustc.edu.cn/archlinux/extra/os/x86_64/${pkgbase}-${pkgver}-${_pkgrel}-any.pkg.tar.zst")
 noextract=()
-sha256sums=('a7ee55a960c0578daf303645e0f72b71f7890ef68b0a968d20f18f762f81edbb')
+sha256sums=('bae6ca1c5a60b96e86dc5d47d5808d74ab91fb14a661d384ae833c5d48c71045')
 
 package_ttf-texlive-fontsextra() {
     pkgdesc="TrueType fonts from texlive"
