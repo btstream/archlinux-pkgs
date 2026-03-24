@@ -59,6 +59,8 @@ done
 [[ -f "$HOME/.config/mimeapps.list" ]] && add_bind "$HOME/.config/mimeapps.list" "$HOME/.config/mimeapps.list"
 mkdir -p "$HOME/.local/share/Kingsoft"
 add_bind "$HOME/.local/share/Kingsoft" "$HOME/.local/share/Kingsoft"
+mkdir -p "$HOME/.config/Kingsoft/"
+add_bind "$HOME/.config/Kingsoft/" "$HOME/.config/Kingsoft/"
 
 # 3. XDG 用户目录绑定 (自动获取最新路径)
 home_path=$(realpath "$HOME")
