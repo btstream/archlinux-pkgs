@@ -1,7 +1,7 @@
 pkgbase = wps-office-bin-bwrap
 	pkgdesc = WPS Office, is an office productivity suite.
-	pkgver = 12.1.2.24722
-	pkgrel = 4
+	pkgver = 12.1.2.25882
+	pkgrel = 1
 	url = https://linux.wps.cn
 	arch = x86_64
 	license = LicenseRef-WPS-EULA
@@ -31,8 +31,8 @@ pkgbase = wps-office-bin-bwrap
 	options = !zipman
 	options = !debug
 	source = wps-bwrap
-	sha1sums = 0f36ad4e15798d87ca0ba8ded932f567955f8f77
-	source_x86_64 = wps-office_12.1.2.24722_amd64.deb::https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/24722/wps-office_12.1.2.24722.AK.preread.sw_612408_amd64.deb?t=1772504293&k=9231cd74d956de818d8844e81a93a67c
-	sha1sums_x86_64 = b5e3fb6cbc7fa164a33c6c872a0b3998c2836911
+	sha1sums = 1ff011bec29c884ebd1b46aa8150c7ffffc96f69
+	source_x86_64 = wps-office_12.1.2.25882_amd64.deb::https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/25882/wps-office_12.1.2.25882.AK.preread.sw.Personal_662820_amd64.deb?t=1776149655&k=e48fb6554cedc1b4381e93726e60d0dc
+	sha1sums_x86_64 = 4377c3c8639d6d782fadb35e1b2e387479c3d6a5
 
 pkgname = wps-office-bin-bwrap

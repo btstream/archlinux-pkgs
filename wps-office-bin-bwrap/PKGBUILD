@@ -1,7 +1,7 @@
 # Maintainer: yifwon <wyf9661 [at] gmail.com>
 pkgname=('wps-office-bin-bwrap')
-pkgver=12.1.2.24722
-pkgrel=5
+pkgver=12.1.2.25882
+pkgrel=1
 pkgdesc="WPS Office, is an office productivity suite."
 arch=('x86_64')
 url="https://linux.wps.cn"
@@ -28,7 +28,7 @@ options=(!strip !zipman !debug)
 # https://gitlab.com/cwittlut/wps-tsk/-/blob/main/tsk.sh?ref_type=heads by Ryan Tsien
 # https://pastebin.com/29TeRUMj by Asuka Minato
 _get_source_url() {
-    local furl="https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/${pkgver##*.}/wps-office_${pkgver}.AK.preread.sw_612408_$1.deb"
+    local furl="https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/${pkgver##*.}/wps-office_${pkgver}.AK.preread.sw.Personal_662820_$1.deb"
     local uri="${furl#https://wps-linux-personal.wpscdn.cn}"
     local secrityKey='7f8faaaa468174dc1c9cd62e5f218a5b'
     local timestamp10=$(date '+%s')
@@ -43,7 +43,7 @@ _get_source_url() {
 source_x86_64=("wps-office_${pkgver}_amd64.deb::$(_get_source_url amd64)")
 # source_x86_64=("wps-office_${pkgver}_amd64.deb::${_srcurl}/${pkgver}/amd64")
 sha1sums=('1ff011bec29c884ebd1b46aa8150c7ffffc96f69')
-sha1sums_x86_64=('b5e3fb6cbc7fa164a33c6c872a0b3998c2836911')
+sha1sums_x86_64=('4377c3c8639d6d782fadb35e1b2e387479c3d6a5')
 source=(wps-bwrap)
 
 package() {
