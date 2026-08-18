@@ -21,7 +21,7 @@ optdepends=(
     'libpng12: PNG image codec support'
     'ttf-wps-fonts: Symbol fonts required by wps-office'
     'ttf-ms-fonts: Microsft Fonts recommended for wps-office')
-conflicts=('wps-office-bin' 'wps-office' 'kingsoft-officehao')
+conflicts=('wps-office-bin' 'wps-office' 'kingsoft-office')
 provides=('wps-office-bin')
 options=(!strip !zipman !debug)
 

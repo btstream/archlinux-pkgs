@@ -28,13 +28,13 @@ pkgbase = wps-office-bin-bwrap
 	provides = wps-office-bin
 	conflicts = wps-office-bin
 	conflicts = wps-office
-	conflicts = kingsoft-officehao
+	conflicts = kingsoft-office
 	options = !strip
 	options = !zipman
 	options = !debug
 	source = wps-bwrap
 	sha1sums = 1ff011bec29c884ebd1b46aa8150c7ffffc96f69
-	source_x86_64 = wps-office_12.1.2.28080_amd64.deb::https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/28080/wps-office_12.1.2.28080.AK.preread.sw.Personal_765474_amd64.deb?t=1786959564&k=10305fc170dc2c283d2dc5394197b07f
+	source_x86_64 = wps-office_12.1.2.28080_amd64.deb::https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/28080/wps-office_12.1.2.28080.AK.preread.sw.Personal_765474_amd64.deb?t=1787054331&k=463188b09c91ea8070f1977d0008ff4a
 	sha1sums_x86_64 = 67f7cb64be90c0ed5709c3ee3f581cc104d68da3
 
 pkgname = wps-office-bin-bwrap
