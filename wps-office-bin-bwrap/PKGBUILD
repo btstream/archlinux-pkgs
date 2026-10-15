@@ -42,7 +42,7 @@ _get_source_url() {
 #source_x86_64=("https://mirrors.163.com/ubuntukylin/pool/partner/wps-office_${pkgver}_amd64.deb")
 source_x86_64=("wps-office_${pkgver}_amd64.deb::$(_get_source_url amd64)")
 # source_x86_64=("wps-office_${pkgver}_amd64.deb::${_srcurl}/${pkgver}/amd64")
-sha1sums=('0f36ad4e15798d87ca0ba8ded932f567955f8f77')
+sha1sums=('1ff011bec29c884ebd1b46aa8150c7ffffc96f69')
 sha1sums_x86_64=('58883f4bf345cec207d5cf75ddbd11b1ad22a8d6')
 source=(wps-bwrap)
 
