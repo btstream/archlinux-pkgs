@@ -1,23 +1,23 @@
 # Repackaging of a vendor binary; no redistribution grant is assumed.
 pkgname=wukong-auth
 pkgver=2.12.30913.1
-pkgrel=3
+pkgrel=4
 pkgdesc='USB Key authentication and zero-trust network access client'
 arch=('x86_64')
 url='https://www.tiger-sec.cn/'
 license=('LicenseRef-Proprietary')
 depends=(
-  alsa-lib at-spi2-core bash ca-certificates-utils cairo dbus expat glibc glib2 gtk3
-  hicolor-icon-theme iptables libcups libdrm libgcc libstdc++
-  libx11 libxcb libxcomposite libxdamage
-  libxext libxfixes libxkbcommon libxrandr mesa nspr nss pango
-  polkit systemd util-linux wayland xdg-utils
+    alsa-lib at-spi2-core bash ca-certificates-utils cairo dbus expat glibc glib2 gtk3
+    hicolor-icon-theme iptables libcups libdrm libgcc libstdc++
+    libx11 libxcb libxcomposite libxdamage
+    libxext libxfixes libxkbcommon libxrandr mesa nspr nss pango
+    polkit systemd util-linux wayland xdg-utils
 )
 optdepends=(
-  'inetutils: hostname command for device information (application has a fallback)'
-  'libpulse: PulseAudio support'
-  'libnotify: desktop notifications for launcher errors'
-  'xorg-xwayland: run the bundled Electron client in a Wayland session'
+    'inetutils: hostname command for device information (application has a fallback)'
+    'libpulse: PulseAudio support'
+    'libnotify: desktop notifications for launcher errors'
+    'xorg-xwayland: run the bundled Electron client in a Wayland session'
 )
 checkdepends=('python')
 backup=('etc/wukong-auth/linuxClient.json')
@@ -33,92 +33,89 @@ _deb=$pkgname-$pkgver-amd64.deb
 # Keep the local filename stable; encode brackets to avoid curl URL globbing.
 # This vendor package includes institution-specific bootstrap data.
 source=(
-  "$_deb::https://portal.arp.cn/software/Wukong-Auth-amd64-v${pkgver}@1@101@159.226.243.223&10081@1613773751099248641@626ebcf6@87ec4b31527ad5e4@%5Bf1e6b9%5D.deb"
-  zra-tsinvc-x86.service
-  linuxClient.json
-  README.md
-  wukong-auth.desktop
-  wukong-auth-launcher
-  50-wukong-auth.rules
-  test_launcher.py
+    "$_deb::https://portal.arp.cn/software/Wukong-Auth-amd64-v${pkgver}@1@101@159.226.243.223&10081@1613773751099248641@626ebcf6@87ec4b31527ad5e4@%5Bf1e6b9%5D.deb"
+    zra-tsinvc-x86.service
+    linuxClient.json
+    wukong-auth.desktop
+    wukong-auth-launcher
+    50-wukong-auth.rules
+    test_launcher.py
 )
 noextract=("$_deb")
 sha256sums=('34a6bebfa40dc0d0b2afad8e8b7da90f590252e994add773a22015562faf882c'
-            'c0e5d474024829c037a8dbd8ae0fceebbf25d7683b175d96092437dd78b3b07d'
-            '49c3d95a40f202408fe6a1ca269df0c42dc37dbe3078c9811d9f5b89310e112d'
-            '938a5cf20def74c2c83401cd8e05b67df11490bd80eef1180a2c3d3b7f422398'
-            '976195fbd77bd2ca5359460503198e562a8cbf663c73362e738da650247749e0'
-            '079d1719e0fcc4348d978aca0826d9428a018f811bf4adf62e3f3b8adea9fdce'
-            '3e39afc9b6c39ae36f669a43ed63d1cb0878ffb0f2732755d2ec24561fb3bed6'
-            'f00cca334de05bc78e723d0c4bb33e3bfbb8707bd5c9e13da50b1373fb3c00df')
+    'c0e5d474024829c037a8dbd8ae0fceebbf25d7683b175d96092437dd78b3b07d'
+    '49c3d95a40f202408fe6a1ca269df0c42dc37dbe3078c9811d9f5b89310e112d'
+    '976195fbd77bd2ca5359460503198e562a8cbf663c73362e738da650247749e0'
+    '079d1719e0fcc4348d978aca0826d9428a018f811bf4adf62e3f3b8adea9fdce'
+    '3e39afc9b6c39ae36f669a43ed63d1cb0878ffb0f2732755d2ec24561fb3bed6'
+    'f00cca334de05bc78e723d0c4bb33e3bfbb8707bd5c9e13da50b1373fb3c00df')
 
 prepare() {
-  mkdir -p "$srcdir/vendor"
-  bsdtar -xf "$srcdir/$_deb" -C "$srcdir/vendor" data.tar.xz
-  bsdtar -xf "$srcdir/vendor/data.tar.xz" -C "$srcdir/vendor"
+    mkdir -p "$srcdir/vendor"
+    bsdtar -xf "$srcdir/$_deb" -C "$srcdir/vendor" data.tar.xz
+    bsdtar -xf "$srcdir/vendor/data.tar.xz" -C "$srcdir/vendor"
 
-  # The frontend consumes the complete vendor bootstrap filename, not the
-  # Arch package version. It includes institution and server parameters.
-  printf '%s\n' \
-    'Wukong-Auth-amd64-v2.12.30913.1@1@101@159.226.243.223&10081@1613773751099248641@626ebcf6@87ec4b31527ad5e4@[f1e6b9].deb' \
-    > "$srcdir/vendor$_extradir/config.json"
+    # The frontend consumes the complete vendor bootstrap filename, not the
+    # Arch package version. It includes institution and server parameters.
+    printf '%s\n' \
+        'Wukong-Auth-amd64-v2.12.30913.1@1@101@159.226.243.223&10081@1613773751099248641@626ebcf6@87ec4b31527ad5e4@[f1e6b9].deb' \
+        >"$srcdir/vendor$_extradir/config.json"
 }
 
 check() {
-  python "$srcdir/test_launcher.py"
+    python "$srcdir/test_launcher.py"
 }
 
 package() {
-  local app="$pkgdir$_appdir"
-  local extra="$pkgdir$_extradir"
-  install -dm755 "$app"
-  cp -a "$srcdir/vendor$_appdir/." "$app/"
+    local app="$pkgdir$_appdir"
+    local extra="$pkgdir$_extradir"
+    install -dm755 "$app"
+    cp -a "$srcdir/vendor$_appdir/." "$app/"
 
-  # Debian metadata and installer scripts must not alter an Arch host.
-  rm -rf "$app/files/bin" "$app/files/lintian"
-  rm -f "$app/info" "$extra/afterInstall.sh" "$extra/afterUnstall.sh" \
-    "$extra/preInstall.sh"
-  rmdir "$pkgdir$_libdir/resources/app/node_modules" 2>/dev/null || true
+    # Debian metadata and installer scripts must not alter an Arch host.
+    rm -rf "$app/files/bin" "$app/files/lintian"
+    rm -f "$app/info" "$extra/afterInstall.sh" "$extra/afterUnstall.sh" \
+        "$extra/preInstall.sh"
+    rmdir "$pkgdir$_libdir/resources/app/node_modules" 2>/dev/null || true
 
-  # Node selects architecture-specific 7zip helpers at runtime.
-  rm -rf "$app/files/lib/tsinclient/resources/extraResource/7zip-bin/linux/arm" \
-    "$app/files/lib/tsinclient/resources/extraResource/7zip-bin/linux/arm64" \
-    "$app/files/lib/tsinclient/resources/extraResource/7zip-bin/linux/ia32"
+    # Node selects architecture-specific 7zip helpers at runtime.
+    rm -rf "$app/files/lib/tsinclient/resources/extraResource/7zip-bin/linux/arm" \
+        "$app/files/lib/tsinclient/resources/extraResource/7zip-bin/linux/arm64" \
+        "$app/files/lib/tsinclient/resources/extraResource/7zip-bin/linux/ia32"
 
-  # Preserve vendor binaries; retain Chromium's setuid sandbox explicitly.
-  chmod 4755 "$pkgdir$_libdir/chrome-sandbox"
+    # Preserve vendor binaries; retain Chromium's setuid sandbox explicitly.
+    chmod 4755 "$pkgdir$_libdir/chrome-sandbox"
 
-  # systemd creates runtime directories. Keep compatibility paths for the GUI.
-  rm -rf "$extra/log"
-  rm -f "$extra/tsin.pid"
-  ln -s /var/log/wukong-auth "$extra/log"
-  ln -s /run/wukong-auth/tsin.pid "$extra/tsin.pid"
+    # systemd creates runtime directories. Keep compatibility paths for the GUI.
+    rm -rf "$extra/log"
+    rm -f "$extra/tsin.pid"
+    ln -s /var/log/wukong-auth "$extra/log"
+    ln -s /run/wukong-auth/tsin.pid "$extra/tsin.pid"
 
-  install -Dm644 "$srcdir/linuxClient.json" \
-    "$pkgdir/etc/wukong-auth/linuxClient.json"
-  install -Dm644 "$srcdir/zra-tsinvc-x86.service" \
-    "$pkgdir/usr/lib/systemd/system/zra-tsinvc-x86.service"
-  install -Dm644 "$srcdir/50-wukong-auth.rules" \
-    "$pkgdir/usr/share/polkit-1/rules.d/50-wukong-auth.rules"
+    install -Dm644 "$srcdir/linuxClient.json" \
+        "$pkgdir/etc/wukong-auth/linuxClient.json"
+    install -Dm644 "$srcdir/zra-tsinvc-x86.service" \
+        "$pkgdir/usr/lib/systemd/system/zra-tsinvc-x86.service"
+    install -Dm644 "$srcdir/50-wukong-auth.rules" \
+        "$pkgdir/usr/share/polkit-1/rules.d/50-wukong-auth.rules"
 
-  install -Dm644 "$srcdir/wukong-auth.desktop" \
-    "$pkgdir/usr/share/applications/$_appid.desktop"
-  local size
-  for size in 256 512; do
-    install -Dm644 "$app/entries/icons/hicolor/${size}x${size}/apps/tsinclient.png" \
-      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/wukong-auth.png"
-  done
-  install -Dm644 "$app/entries/icons/hicolor/256x256/apps/tsinclient.png" \
-    "$pkgdir/usr/share/pixmaps/wukong-auth.png"
-  rm -rf "$app/entries"
+    install -Dm644 "$srcdir/wukong-auth.desktop" \
+        "$pkgdir/usr/share/applications/$_appid.desktop"
+    local size
+    for size in 256 512; do
+        install -Dm644 "$app/entries/icons/hicolor/${size}x${size}/apps/tsinclient.png" \
+            "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/wukong-auth.png"
+    done
+    install -Dm644 "$app/entries/icons/hicolor/256x256/apps/tsinclient.png" \
+        "$pkgdir/usr/share/pixmaps/wukong-auth.png"
+    rm -rf "$app/entries"
 
-  install -Dm755 "$srcdir/wukong-auth-launcher" "$pkgdir/usr/bin/wukong-auth"
-  ln -s wukong-auth "$pkgdir/usr/bin/TSINClient"
+    install -Dm755 "$srcdir/wukong-auth-launcher" "$pkgdir/usr/bin/wukong-auth"
+    ln -s wukong-auth "$pkgdir/usr/bin/TSINClient"
 
-  # Third-party notices are NOT a license for tiger-sec's proprietary code.
-  install -Dm644 "$app/files/doc/tsinclient/copyright" \
-    "$pkgdir/usr/share/licenses/$pkgname/Electron-LICENSE"
-  install -Dm644 "$pkgdir$_libdir/LICENSES.chromium.html" \
-    "$pkgdir/usr/share/licenses/$pkgname/LICENSES.chromium.html"
-  install -Dm644 "$srcdir/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+    # Third-party notices are NOT a license for tiger-sec's proprietary code.
+    install -Dm644 "$app/files/doc/tsinclient/copyright" \
+        "$pkgdir/usr/share/licenses/$pkgname/Electron-LICENSE"
+    install -Dm644 "$pkgdir$_libdir/LICENSES.chromium.html" \
+        "$pkgdir/usr/share/licenses/$pkgname/LICENSES.chromium.html"
 }
