@@ -1,0 +1,19 @@
+{
+    "logLevel": "info",
+    "logFileDir": "/var/log/wukong-auth",
+    "logFileName": "termout.log",
+    "logFileMaxSize": 5,
+    "logConsoleOutput": false,
+    "logFileMaxNum": 8,
+    "pidFile": "/run/wukong-auth/tsin.pid",
+    "certTrustStoreEnabled": true,
+    "tunDevPerferTapwindows": false,
+    "dnsProxyEnabled": true,
+    "firewallPermitSelfEnabled": true,
+    "netstackPerferPerformance": true,
+    "defaultTLSProtocolGMSSL": false,
+    "sentryEnabled": true,
+    "listenerMTLSEnabled": false,
+    "fakehostListenEnabled": true,
+    "tunDevOpenAtClientOn": false
+}

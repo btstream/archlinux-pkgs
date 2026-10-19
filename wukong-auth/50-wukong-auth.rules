@@ -1,0 +1,15 @@
+// Limit desktop users to starting/stopping this packaged system service.
+// Stop is also allowed after the session becomes inactive (lock/logout),
+// otherwise launcher cleanup could require authentication on a locked screen.
+polkit.addRule(function(action, subject) {
+    if (action.id !== "org.freedesktop.systemd1.manage-units" ||
+        action.lookup("unit") !== "zra-tsinvc-x86.service" ||
+        !subject.local) {
+        return polkit.Result.NOT_HANDLED;
+    }
+    var verb = action.lookup("verb");
+    if (verb === "stop" || (verb === "start" && subject.active)) {
+        return polkit.Result.YES;
+    }
+    return polkit.Result.NOT_HANDLED;
+});

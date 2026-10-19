@@ -1,0 +1,17 @@
+[Unit]
+Description=Wukong Auth privileged network service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=LD_LIBRARY_PATH=/opt/apps/cn.tiger-sec.tsinclient/files/lib/tsinclient/resources/extraResource/linux
+WorkingDirectory=/opt/apps/cn.tiger-sec.tsinclient/files/lib/tsinclient/resources/extraResource/linux
+ExecStart=/opt/apps/cn.tiger-sec.tsinclient/files/lib/tsinclient/resources/extraResource/linux/tsinvc-linux run /etc/wukong-auth/linuxClient.json
+RuntimeDirectory=wukong-auth
+RuntimeDirectoryMode=0755
+LogsDirectory=wukong-auth
+LogsDirectoryMode=0755
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s

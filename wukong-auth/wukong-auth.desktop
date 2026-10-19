@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Wukong Auth
+Name[zh_CN]=悟空认证
+GenericName=Network Authentication
+GenericName[zh_CN]=网络认证客户端
+Comment=USB Key authentication and zero-trust network access
+Comment[zh_CN]=USB Key 认证和零信任网络接入
+Exec=/usr/bin/wukong-auth %U
+TryExec=/usr/bin/wukong-auth
+Icon=wukong-auth
+Terminal=false
+StartupNotify=false
+Categories=Network;
+Keywords=Wukong;Auth;悟空;认证;网络;VPN;
+MimeType=x-scheme-handler/tigersec;

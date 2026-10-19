@@ -1,0 +1,18 @@
+post_install() {
+  cat <<'EOF'
+从应用菜单打开“悟空认证 / Wukong Auth”，或执行 wukong-auth。
+启动器自动启动守护进程；GUI 真正退出后自动停止，无须 enable 服务。
+本机活动桌面会话可通过限定 Polkit 规则启动此服务，本机会话可停止它。
+注意：服务以 root 运行厂商代码，启动后可能修改 DNS、路由、hosts 和证书信任库。
+KDE 菜单未及时显示时，在当前桌面用户终端执行（不要 sudo）：
+  kbuildsycoca6 --noincremental
+EOF
+}
+
+post_upgrade() {
+  post_install
+  cat <<'EOF'
+若以前手动 enable 过服务，请先 disable --now，再从菜单启动客户端。
+若有旧厂商生成的 /etc/systemd/system/zra-tsinvc-x86.service，
+EOF
+}

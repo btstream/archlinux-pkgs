@@ -1,0 +1,84 @@
+#!/bin/bash
+# Keep the system daemon alive for the lifetime of the Electron main process.
+# GUI is never run as root. Do not use sudo/pkexec to launch Electron.
+set -u
+
+_client=/opt/apps/cn.tiger-sec.tsinclient/files/lib/tsinclient/TSINClient
+_unit=zra-tsinvc-x86.service
+_gui_pid=
+
+_error() {
+  printf 'wukong-auth: %s\n' "$*" >&2
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send --app-name='Wukong Auth' --icon=wukong-auth \
+      '悟空认证' "$*" || true
+  fi
+}
+
+if (( EUID == 0 )); then
+  _error '请以普通桌面用户运行，不要使用 sudo。'
+  exit 1
+fi
+if [[ -z ${XDG_RUNTIME_DIR:-} || ! -d $XDG_RUNTIME_DIR || ! -O $XDG_RUNTIME_DIR ]]; then
+  _error '缺少当前用户的 XDG_RUNTIME_DIR，请从已登录的桌面会话启动。'
+  exit 1
+fi
+if [[ ! -x $_client ]]; then
+  _error '找不到客户端，请重新安装 wukong-auth。'
+  exit 1
+fi
+
+umask 077
+_runtime=$XDG_RUNTIME_DIR/wukong-auth-launcher
+mkdir -p -- "$_runtime" || exit 1
+exec 9>"$_runtime/lock"
+if ! flock -n 9; then
+  # A second launch (including tigersec:// callbacks) forwards to Electron's
+  # existing single instance. It must not stop the first launcher's daemon.
+  # Wait for initial service startup, rather than racing it with another GUI.
+  for (( _attempt=0; _attempt<300; _attempt++ )); do
+    [[ -e $_runtime/ready ]] && break
+    sleep 0.1
+  done
+  if [[ ! -e $_runtime/ready ]]; then
+    _error '客户端正在启动，请稍后再试。'
+    exit 1
+  fi
+  exec "$_client" "$@" 9>&-
+fi
+rm -f -- "$_runtime/ready"
+
+_cleanup() {
+  local status=$?
+  trap - EXIT HUP INT TERM
+  rm -f -- "$_runtime/ready"
+  if [[ -n $_gui_pid ]] && kill -0 "$_gui_pid" 2>/dev/null; then
+    kill -TERM "$_gui_pid" 2>/dev/null || true
+    wait "$_gui_pid" 2>/dev/null || true
+  fi
+  if ! systemctl --system stop "$_unit"; then
+    _error '无法停止守护进程，请执行 systemctl stop zra-tsinvc-x86.service。'
+  fi
+  exit "$status"
+}
+
+# Install traps before starting, so interruption during startup also cleans up.
+trap _cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if ! systemctl --system start "$_unit"; then
+  _error '守护进程启动失败，请检查 systemctl status zra-tsinvc-x86.service。'
+  exit 1
+fi
+
+# Close the lock descriptor in Electron and its children; only this launcher
+# owns it. wait tracks Electron's main process, not a transient renderer.
+"$_client" "$@" 9>&- &
+_gui_pid=$!
+touch "$_runtime/ready"
+wait "$_gui_pid"
+_status=$?
+_gui_pid=
+exit "$_status"
