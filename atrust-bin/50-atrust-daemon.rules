@@ -1,0 +1,45 @@
+// /usr/share/polkit-1/rules.d/50-atrust-daemon.rules
+//
+// 允许本地用户对 aTrustDaemon.service 执行 start/stop/restart 等操作时
+// 不再弹出 polkit 密码认证框（供 atrust-bin 启动脚本使用）。
+//
+// 只放行这一个 unit，且只放行常规生命周期操作，不影响其它 systemd 单元的权限。
+
+polkit.addRule(function(action, subject) {
+    // 只处理 systemd 单元管理动作
+    if (action.id != "org.freedesktop.systemd1.manage-units") {
+        return polkit.Result.NOT_HANDLED;
+    }
+
+    // 只处理 aTrustDaemon.service
+    if (action.lookup("unit") != "aTrustDaemon.service") {
+        return polkit.Result.NOT_HANDLED;
+    }
+
+    // 仅限本机登录会话（排除 SSH 等远程会话）
+    if (!subject.local) {
+        return polkit.Result.NOT_HANDLED;
+    }
+
+    // 如需进一步收紧权限，取消下面一行的注释，
+    // 并把需要使用 aTrust 的用户加入 atrust 组：
+    //   sudo groupadd -r atrust && sudo gpasswd -a "$USER" atrust
+    // if (!subject.isInGroup("atrust")) { return polkit.Result.NOT_HANDLED; }
+
+    var verb = action.lookup("verb");
+    var allowedVerbs = [
+        "start",
+        "stop",
+        "restart",
+        "try-restart",
+        "reload",
+        "reload-or-restart",
+        "try-reload-or-restart"
+    ];
+
+    if (allowedVerbs.indexOf(verb) != -1) {
+        return polkit.Result.YES;
+    }
+
+    return polkit.Result.NOT_HANDLED;
+});
