@@ -61,7 +61,14 @@ def dependency_graph(packages, requirements, official, overrides):
                 if other != directory:
                     graph[directory].add(other)
                 continue
-            if choose(expression, official, overrides):
+            # 官方仓库的虚拟依赖（如 java-runtime）可以有多个实现。
+            # 这里仅验证可满足性，具体 provider 由 chroot 内 pacman 选择。
+            # 显式覆盖仍校验所指定的官方包，但不代替 pacman 安装策略。
+            if (
+                choose(expression, official, overrides)
+                if dependency(expression)[0] in overrides
+                else any(satisfies(package, expression) for package in official)
+            ):
                 continue
             raise ValueError(
                 f"{directory} 缺少依赖 {expression}：请手动把对应 PKGBUILD 加入本仓库"

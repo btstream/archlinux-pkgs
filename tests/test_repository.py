@@ -98,6 +98,27 @@ optdepends = optional: not required
         )
         self.assertEqual(order(graph, {"app-dir"}), ["library-dir", "app-dir"])
 
+    def test_official_virtual_dependency_defers_provider_selection_to_pacman(self):
+        graph = dependency_graph(
+            {"app": [Package("app", "1", "app")]},
+            {"app": ["java-runtime"]},
+            [Package("jdk-openjdk", "25", "", ["java-runtime=25"]),
+             Package("jre-openjdk", "25", "", ["java-runtime=25"])],
+            {},
+        )
+        self.assertEqual(graph, {"app": set()})
+
+    @unittest.skipUnless(shutil.which("vercmp"), "需要 vercmp")
+    def test_official_virtual_dependency_still_checks_version(self):
+        with self.assertRaisesRegex(ValueError, "java-runtime>=25"):
+            dependency_graph(
+                {"app": [Package("app", "1", "app")]},
+                {"app": ["java-runtime>=25"]},
+                [Package("jre17-openjdk", "17", "", ["java-runtime=17"]),
+                 Package("jre21-openjdk", "21", "", ["java-runtime=21"])],
+                {},
+            )
+
     def test_retention_is_per_package_and_rejects_overwrite(self):
         history = []
         for number in range(1, 4):

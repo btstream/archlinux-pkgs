@@ -117,9 +117,11 @@ CI 以 `makepkg --printsrcinfo` 的实际输出为准，不对动态下载 URL �
 - 非官方依赖必须手动把 PKGBUILD 和所需文件加入本仓库；**不访问 AUR**。
 - 检查运行依赖、构建依赖和测试依赖；不自动处理可选依赖。
 - 支持版本约束、`provides`、split package 和当前架构的依赖字段。
-- 本仓库能满足的依赖优先于官方仓库；多个虚拟 provider 必须显式选择。
-- 在 `.ci/providers.json` 指定 provider，例如 `{"virtual-name": "actual-package"}`。
-- 缺失依赖、版本不满足、provider 歧义、循环依赖会明确失败。
+- 本仓库能满足的依赖优先于官方仓库；多个本仓库虚拟 provider 必须显式选择。
+- 在 `.ci/providers.json` 指定本仓库 provider，例如 `{"virtual-name": "actual-package"}`。
+- 官方虚拟依赖（如 `java-runtime`）只检查能否满足，由 chroot 内的 pacman
+  在 `--noconfirm` 模式下选择实现；若必须使用特定官方实现，在 PKGBUILD 中依赖具体包名。
+- 缺失依赖、版本不满足、本仓库 provider 歧义、循环依赖会明确失败。
 - 冲突和更复杂的安装约束由 chroot 内的 pacman 最终检查。
 - 首版不支持打破循环依赖的 bootstrap 构建，也不自动生成 debug 子包。
 
