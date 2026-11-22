@@ -21,7 +21,11 @@ def dependency(value):
     return match.groups()
 
 
-def satisfies(package, expression):
+def vercmp(version, wanted):
+    return int(subprocess.check_output(["vercmp", version, wanted], text=True))
+
+
+def satisfies(package, expression, compare=vercmp):
     name, operator, wanted = dependency(expression)
     candidates = [package.version] if package.name == name else []
     for provided in package.provides:
@@ -33,7 +37,7 @@ def satisfies(package, expression):
             return True
         if not version:
             continue
-        comparison = int(subprocess.check_output(["vercmp", version, wanted], text=True))
+        comparison = compare(version, wanted)
         if {
             "=": comparison == 0,
             ">": comparison > 0,

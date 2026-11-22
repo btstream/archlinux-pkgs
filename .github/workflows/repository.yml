@@ -36,29 +36,26 @@ jobs:
       contents: read
       actions: read
     runs-on: ubuntu-latest
-    container:
-      image: archlinux:base-devel
-      options: --privileged
     timeout-minutes: 180
     steps:
-      - name: 安装构建工具（checkout 前必须有 Git）
-        run: pacman -Syu --noconfirm --needed devtools git sudo python
+      - name: 检查宿主工具
+        run: |
+          git --version
+          docker version
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: 准备构建用户并检查 Git 仓库
+      - name: 安装宿主构建工具
         run: |
-          useradd -m builder
-          printf 'builder ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/builder
-          chown -R builder:builder "$GITHUB_WORKSPACE"
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git rev-parse --verify HEAD
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools
       - name: 查找上次成功发布的提交
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/select-base.py
-      - name: 解析依赖并在干净 chroot 中构建
+      - name: 解析依赖并在干净 Arch 容器中构建
         run: bash scripts/ci-build.sh
       - uses: actions/upload-artifact@v4
         with:

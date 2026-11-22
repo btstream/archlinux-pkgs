@@ -1,6 +1,6 @@
 # btstream-pkgs
 
-自用 Arch Linux PKGBUILD 和公开二进制仓库。GitHub Actions 在干净 chroot 中构建，
+自用 Arch Linux PKGBUILD 和公开二进制仓库。GitHub Actions 为每个包启动全新的 Arch 容器，
 统一签名后上传 OneDrive；HTTP 服务由仓库维护者自行部署。
 
 ## 安装二进制包
@@ -119,15 +119,16 @@ CI 以 `makepkg --printsrcinfo` 的实际输出为准，不对动态下载 URL �
 - 支持版本约束、`provides`、split package 和当前架构的依赖字段。
 - 本仓库能满足的依赖优先于官方仓库；多个本仓库虚拟 provider 必须显式选择。
 - 在 `.ci/providers.json` 指定本仓库 provider，例如 `{"virtual-name": "actual-package"}`。
-- 官方虚拟依赖（如 `java-runtime`）只检查能否满足，由 chroot 内的 pacman
+- 官方虚拟依赖（如 `java-runtime`）只检查能否满足，由构建容器内的 pacman
   在 `--noconfirm` 模式下选择实现；若必须使用特定官方实现，在 PKGBUILD 中依赖具体包名。
 - 缺失依赖、版本不满足、本仓库 provider 歧义、循环依赖会明确失败。
-- 冲突和更复杂的安装约束由 chroot 内的 pacman 最终检查。
+- 冲突和更复杂的安装约束由构建容器内的 pacman 最终检查。
 - 首版不支持打破循环依赖的 bootstrap 构建，也不自动生成 debug 子包。
 
-依赖解析验证整个仓库。构建采用拓扑顺序，并把前面完成的必要依赖通过
-`makechrootpkg -I` 安装进当前包的干净 chroot；split package 的所有声明产物都会发布。
-构建 job 不获得签名私钥或 OneDrive 凭据。
+依赖解析验证整个仓库。构建采用拓扑顺序，每个包从同一 Arch 镜像启动新容器，
+只挂载该包的已提交源码和只读的必要依赖产物。仓库内依赖通过 `pacman -U` 安装，
+`makepkg` 以非 root 用户执行。split package 的所有声明产物都会发布。
+构建容器不使用特权模式或 Docker socket，构建 job 不获得签名私钥或 OneDrive 凭据。
 
 ### 触发规则
 

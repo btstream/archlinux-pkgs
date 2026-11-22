@@ -8,11 +8,11 @@ from pathlib import Path
 import subprocess
 import tarfile
 
-from repo_model import Package, dependency, parse_desc, parse_srcinfo, satisfies
+from repo_model import Package, dependency, parse_desc, parse_srcinfo, satisfies, vercmp
 
 
-def choose(expression, candidates, overrides):
-    matches = [p for p in candidates if satisfies(p, expression)]
+def choose(expression, candidates, overrides, compare=vercmp):
+    matches = [p for p in candidates if satisfies(p, expression, compare)]
     name = dependency(expression)[0]
     if name in overrides:
         matches = [p for p in matches if p.name == overrides[name]]

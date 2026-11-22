@@ -17,43 +17,37 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from repo_model import Package, parse_srcinfo, satisfies
 from resolve import choose, dependency_graph, order
+from build import container_command, stage_sources
 import publish
 
 
 class ModelTests(unittest.TestCase):
-    def test_build_bootstraps_chroot_under_an_existing_parent(self):
+    def test_build_runs_resolver_and_builder_without_nested_chroot(self):
         script = Path(__file__).resolve().parents[1] / "scripts/ci-build.sh"
         with tempfile.TemporaryDirectory() as temporary:
             workspace = Path(temporary)
             tools = workspace / "bin"
             tools.mkdir()
-            scratch = workspace / "scratch"
-            scratch.mkdir()
             commands = {
                 "python": """#!/bin/sh
 set -eu
-case "$1" in
-  scripts/resolve.py) printf '{"order":["example"]}\\n' > "$3" ;;
-  scripts/build.py)
-    grep -q '!debug' "$2/root/etc/makepkg.conf"
-    test -s "$2/root/etc/pacman.conf"
-    touch built
-    ;;
-  *) exec "$TEST_PYTHON" "$@" ;;
-esac
+test "$1" = scripts/build.py
+test "$2" = btstream-ci-build
+test -s ci-output/plan.json
+touch built
 """,
-                "mkarchroot": """#!/bin/sh
+                "docker": """#!/bin/sh
 set -eu
-test "$1" = -C
-test "$2" = /etc/pacman.conf
-shift 2
-root=$(readlink -f "$1")
-test ! -e "$root"
-test "$2" = base-devel
-mkdir "$root"
-mkdir "$root/etc"
-# 模拟 arch-nspawn 通过 -C 导入配置，而非依赖 pacstrap 生成配置。
-printf '[options]\\n' > "$root/etc/pacman.conf"
+case "$1" in
+  build) touch image-built ;;
+  run)
+    test -f image-built
+    test "$2" = --rm
+    test "$4" = "type=bind,src=$PWD,dst=/source,readonly"
+    printf '{"order":["example"]}\\n' > ci-output/plan.json
+    ;;
+  *) exit 1 ;;
+esac
 """,
             }
             for name, content in commands.items():
@@ -63,13 +57,21 @@ printf '[options]\\n' > "$root/etc/pacman.conf"
 
             result = subprocess.run(
                 ["bash", str(script)], cwd=workspace, text=True, capture_output=True,
-                env={
-                    **os.environ, "PATH": f"{tools}:{os.environ['PATH']}",
-                    "TMPDIR": str(scratch), "TEST_PYTHON": sys.executable,
-                },
+                env={**os.environ, "PATH": f"{tools}:{os.environ['PATH']}"},
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((workspace / "built").is_file())
+
+    def test_package_container_only_mounts_sources_and_dependencies(self):
+        command = container_command("arch-builder", "/staged", "/deps", ["lib.pkg.tar.zst"])
+        self.assertEqual(command[:3], ["docker", "run", "--rm"])
+        self.assertEqual([arg for arg in command if arg.startswith("type=bind,")], [
+            "type=bind,src=/staged,dst=/build",
+            "type=bind,src=/deps,dst=/dependencies,readonly",
+        ])
+        self.assertNotIn("--privileged", command)
+        self.assertIn("runuser -u builder -- makepkg", command[-3])
+        self.assertEqual(command[-1], "/dependencies/lib.pkg.tar.zst")
 
     def test_all_jobs_install_git_before_checkout(self):
         workflow = (
@@ -82,11 +84,15 @@ printf '[options]\\n' > "$root/etc/pacman.conf"
         self.assertEqual({name for name, _ in jobs}, {"verify", "build", "publish"})
         for name, body in jobs:
             with self.subTest(job=name):
-                install = body.index("pacman -Syu")
                 checkout = body.index("uses: actions/checkout@")
+                self.assertIn("git rev-parse --verify HEAD", body)
+                if name == "build":
+                    self.assertLess(body.index("git --version"), checkout)
+                    self.assertNotIn("container:", body)
+                    continue
+                install = body.index("pacman -Syu")
                 self.assertLess(install, checkout)
                 self.assertIn("git", body[install:].splitlines()[0].split())
-                self.assertIn("git rev-parse --verify HEAD", body)
                 trust = body.index('git config --global --add safe.directory "$GITHUB_WORKSPACE"')
                 self.assertLess(checkout, trust)
                 self.assertLess(trust, body.index("git rev-parse --verify HEAD"))
@@ -290,6 +296,22 @@ class PublishTests(unittest.TestCase):
             info.size = len(content)
             archive.addfile(info, io.BytesIO(content))
         return target.name
+
+    def test_stage_sources_excludes_other_packages_and_uncommitted_files(self):
+        for folder in ("package", "other-package"):
+            source = self.repository / folder
+            source.mkdir()
+            (source / "PKGBUILD").write_text("pkgname=test\n")
+        subprocess.run(["git", "-C", str(self.repository), "add", "."], check=True)
+        subprocess.run([
+            "git", "-C", str(self.repository), "-c", "user.name=Repository Test",
+            "-c", "user.email=test@example.invalid", "-c", "commit.gpgsign=false",
+            "-c", "core.hooksPath=/dev/null", "commit", "--quiet", "-m", "Add test packages",
+        ], check=True)
+        (self.repository / "package/uncommitted.deb").touch()
+        staged = stage_sources(self.repository, "package", self.case / "staged")
+        self.assertEqual({path.name for path in staged.iterdir()}, {"PKGBUILD"})
+        self.assertFalse((staged.parent / "other-package").exists())
 
     def test_container_ownership_exception_is_scoped_to_workspace(self):
         env = {
