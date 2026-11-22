@@ -21,6 +21,50 @@ import publish
 
 
 class ModelTests(unittest.TestCase):
+    def test_build_bootstraps_chroot_under_an_existing_parent(self):
+        script = Path(__file__).resolve().parents[1] / "scripts/ci-build.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary)
+            tools = workspace / "bin"
+            tools.mkdir()
+            scratch = workspace / "scratch"
+            scratch.mkdir()
+            commands = {
+                "python": """#!/bin/sh
+set -eu
+case "$1" in
+  scripts/resolve.py) printf '{"order":["example"]}\\n' > "$3" ;;
+  scripts/build.py)
+    grep -q '!debug' "$2/root/etc/makepkg.conf"
+    touch built
+    ;;
+  *) exec "$TEST_PYTHON" "$@" ;;
+esac
+""",
+                "mkarchroot": """#!/bin/sh
+set -eu
+root=$(readlink -f "$1")
+test ! -e "$root"
+test "$2" = base-devel
+mkdir "$root"
+mkdir "$root/etc"
+""",
+            }
+            for name, content in commands.items():
+                executable = tools / name
+                executable.write_text(content)
+                executable.chmod(0o755)
+
+            result = subprocess.run(
+                ["bash", str(script)], cwd=workspace, text=True, capture_output=True,
+                env={
+                    **os.environ, "PATH": f"{tools}:{os.environ['PATH']}",
+                    "TMPDIR": str(scratch), "TEST_PYTHON": sys.executable,
+                },
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((workspace / "built").is_file())
+
     def test_all_jobs_install_git_before_checkout(self):
         workflow = (
             Path(__file__).resolve().parents[1] / ".github/workflows/repository.yml"
