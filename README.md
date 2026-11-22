@@ -202,7 +202,7 @@ GitHub concurrency 不保证 FIFO 发布；工作流以最后成功提交为基�
 
 ## 本地测试
 
-在 Arch Linux 安装 `python`、`gnupg`、`libarchive`（`pacman` 自带仓库工具），运行：
+在 Arch Linux 安装 `python`、`gnupg`、`libarchive`、`git`（`pacman` 自带仓库工具），运行：
 
 ```bash
 python -m unittest discover -s tests -v
