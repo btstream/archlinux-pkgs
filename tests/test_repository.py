@@ -36,6 +36,7 @@ case "$1" in
   scripts/resolve.py) printf '{"order":["example"]}\\n' > "$3" ;;
   scripts/build.py)
     grep -q '!debug' "$2/root/etc/makepkg.conf"
+    test -s "$2/root/etc/pacman.conf"
     touch built
     ;;
   *) exec "$TEST_PYTHON" "$@" ;;
@@ -43,11 +44,16 @@ esac
 """,
                 "mkarchroot": """#!/bin/sh
 set -eu
+test "$1" = -C
+test "$2" = /etc/pacman.conf
+shift 2
 root=$(readlink -f "$1")
 test ! -e "$root"
 test "$2" = base-devel
 mkdir "$root"
 mkdir "$root/etc"
+# 模拟 arch-nspawn 通过 -C 导入配置，而非依赖 pacstrap 生成配置。
+printf '[options]\\n' > "$root/etc/pacman.conf"
 """,
             }
             for name, content in commands.items():
