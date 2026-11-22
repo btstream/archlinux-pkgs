@@ -88,10 +88,16 @@ def main():
     for directory in sorted(root.iterdir()):
         if not (directory / "PKGBUILD").is_file():
             continue
-        # 在无发布凭据的构建 job，以非 root 身份读取实际元数据。
+        # makepkg 即使只输出元数据，也会检查各输出目录是否可写。
         text = subprocess.check_output(
             ["runuser", "-u", "builder", "--", "bash", "-c",
-             'cd "$1"; makepkg --printsrcinfo', "bash", str(directory)],
+             'set -eu\n'
+             'scratch=$(mktemp -d)\n'
+             'trap \'rmdir "$scratch"\' EXIT\n'
+             'cd "$1"\n'
+             'BUILDDIR="$scratch" SRCDEST="$scratch" PKGDEST="$scratch" '
+             'SRCPKGDEST="$scratch" LOGDEST="$scratch" makepkg --printsrcinfo',
+             "bash", str(directory)],
             text=True,
         )
         entries, dependencies = parse_srcinfo(text, directory.name)
