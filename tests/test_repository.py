@@ -3,6 +3,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -20,6 +21,23 @@ import publish
 
 
 class ModelTests(unittest.TestCase):
+    def test_all_jobs_install_git_before_checkout(self):
+        workflow = (
+            Path(__file__).resolve().parents[1] / ".github/workflows/repository.yml"
+        ).read_text()
+        jobs = re.findall(
+            r"(?ms)^  (verify|build|publish):\n(.*?)(?=^  [a-z][a-z_-]*:\n|\Z)",
+            workflow,
+        )
+        self.assertEqual({name for name, _ in jobs}, {"verify", "build", "publish"})
+        for name, body in jobs:
+            with self.subTest(job=name):
+                install = body.index("pacman -Syu")
+                checkout = body.index("uses: actions/checkout@")
+                self.assertLess(install, checkout)
+                self.assertIn("git", body[install:].splitlines()[0].split())
+                self.assertIn("git rev-parse --verify HEAD", body)
+
     def test_split_architecture_and_versions(self):
         packages, requirements = parse_srcinfo("""
 pkgbase = example
@@ -140,8 +158,8 @@ class LocalRemote:
             raise AssertionError(command)
 
 
-@unittest.skipUnless(all(shutil.which(t) for t in ("gpg", "repo-add", "repo-remove", "bsdtar")),
-                     "集成测试需要 Arch 仓库工具和 GPG")
+@unittest.skipUnless(all(shutil.which(t) for t in ("git", "gpg", "repo-add", "repo-remove", "bsdtar")),
+                     "集成测试需要 Git、Arch 仓库工具和 GPG")
 class PublishTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -170,6 +188,17 @@ class PublishTests(unittest.TestCase):
 
     def setUp(self):
         self.case = Path(tempfile.mkdtemp(dir=self.root))
+        self.repository = self.case / "repository"
+        subprocess.run(["git", "init", "--quiet", str(self.repository)], check=True)
+        subprocess.run([
+            "git", "-C", str(self.repository), "-c", "user.name=Repository Test",
+            "-c", "user.email=test@example.invalid", "-c", "commit.gpgsign=false",
+            "-c", "core.hooksPath=/dev/null", "commit", "--quiet", "--allow-empty",
+            "-m", "Create isolated test repository",
+        ], check=True)
+        self.commit = subprocess.check_output(
+            ["git", "-C", str(self.repository), "rev-parse", "HEAD"], text=True,
+        ).strip()
         self.remote = self.case / "remote"
         self.source = self.case / "artifacts"
         (self.source / "packages").mkdir(parents=True)
@@ -195,7 +224,7 @@ class PublishTests(unittest.TestCase):
             self.artifact(name, version)
         (self.source / "plan.json").write_text(json.dumps({
             "inventory": self.inventory, "full": full, "expected": list(builds),
-            "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+            "commit": self.commit,
         }))
         env = {
             "GNUPGHOME": str(self.gpg), "GPG_KEY_ID": self.key,
@@ -204,7 +233,9 @@ class PublishTests(unittest.TestCase):
         }
         with patch.dict(os.environ, env), patch.object(
             sys, "argv", ["publish.py", str(self.source)],
-        ), patch.object(publish, "Remote", LocalRemote), contextlib.redirect_stdout(io.StringIO()):
+        ), patch.object(publish, "Remote", LocalRemote), contextlib.chdir(
+            self.repository,
+        ), contextlib.redirect_stdout(io.StringIO()):
             publish.main()
 
     def test_incremental_retention_signatures_and_removal(self):

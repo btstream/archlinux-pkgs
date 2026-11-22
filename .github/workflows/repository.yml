@@ -19,11 +19,13 @@ jobs:
     container:
       image: archlinux:base
     steps:
+      - name: 安装测试工具（checkout 前必须有 Git）
+        run: pacman -Syu --noconfirm --needed python gnupg libarchive git
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - run: pacman -Syu --noconfirm --needed python gnupg libarchive git
       - run: |
+          git rev-parse --verify HEAD
           bash -n scripts/ci-build.sh
           python -m unittest discover -s tests -v
 
@@ -38,17 +40,19 @@ jobs:
       options: --privileged
     timeout-minutes: 180
     steps:
+      - name: 安装构建工具（checkout 前必须有 Git）
+        run: pacman -Syu --noconfirm --needed devtools git sudo python
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: 安装构建工具
+      - name: 准备构建用户并检查 Git 仓库
         run: |
-          pacman -Syu --noconfirm --needed devtools git sudo python
           useradd -m builder
           printf 'builder ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/builder
           chown -R builder:builder "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git rev-parse --verify HEAD
       - name: 查找上次成功发布的提交
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,12 +78,14 @@ jobs:
       REPO_NAME: btstream-pkgs
       BUILD_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
+      - name: 安装发布工具（checkout 前必须有 Git）
+        run: pacman -Syu --noconfirm --needed python rclone gnupg libarchive git
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: 安装发布工具
-        run: pacman -Syu --noconfirm --needed python rclone gnupg libarchive git
+      - name: 检查 Git 仓库
+        run: git rev-parse --verify HEAD
       - uses: actions/download-artifact@v4
         with:
           name: repository-build
