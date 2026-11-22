@@ -1,4 +1,6 @@
 **/pkg/*
 **/src/*
-*.pkg.tar.zst
+*.pkg.tar.*
 *.deb
+ci-output/
+__pycache__/

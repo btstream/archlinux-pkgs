@@ -1,0 +1,104 @@
+name: btstream-pkgs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 整条工作流串行化，避免两个发布者同时修改远端状态。
+concurrency:
+  group: btstream-pkgs
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: pacman -Syu --noconfirm --needed python gnupg libarchive
+      - run: |
+          bash -n scripts/ci-build.sh
+          python -m unittest discover -s tests -v
+
+  build:
+    needs: verify
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 安装构建工具
+        run: |
+          pacman -Syu --noconfirm --needed devtools git sudo python
+          useradd -m builder
+          printf 'builder ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: 查找上次成功发布的提交
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/select-base.py
+      - name: 解析依赖并在干净 chroot 中构建
+        run: bash scripts/ci-build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repository-build
+          path: ci-output/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base
+    timeout-minutes: 120
+    environment: repository-publish
+    env:
+      REPO_NAME: btstream-pkgs
+      BUILD_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 安装发布工具
+        run: pacman -Syu --noconfirm --needed python rclone gnupg libarchive git
+      - uses: actions/download-artifact@v4
+        with:
+          name: repository-build
+          path: ci-output/
+      - name: 导入发布凭据
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG }}
+        run: |
+          umask 077
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -p "$GNUPGHOME" "$RUNNER_TEMP/rclone"
+          printf '%s\n' "$GPG_PRIVATE_KEY" | gpg --batch --import
+          printf '%s\n' "$RCLONE_CONFIG_CONTENT" > "$RUNNER_TEMP/rclone/rclone.conf"
+          printf 'GNUPGHOME=%s\n' "$GNUPGHOME" >> "$GITHUB_ENV"
+          printf 'RCLONE_CONFIG=%s\n' "$RUNNER_TEMP/rclone/rclone.conf" >> "$GITHUB_ENV"
+      - name: 签名、更新仓库并上传 OneDrive
+        env:
+          REPO_REMOTE: ${{ vars.REPO_REMOTE || 'onedrive:archlinux-pkgs' }}
+          REPO_INITIALIZE: ${{ vars.REPO_INITIALIZE || 'false' }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: python scripts/publish.py ci-output
