@@ -37,6 +37,9 @@ class ModelTests(unittest.TestCase):
                 self.assertLess(install, checkout)
                 self.assertIn("git", body[install:].splitlines()[0].split())
                 self.assertIn("git rev-parse --verify HEAD", body)
+                trust = body.index('git config --global --add safe.directory "$GITHUB_WORKSPACE"')
+                self.assertLess(checkout, trust)
+                self.assertLess(trust, body.index("git rev-parse --verify HEAD"))
 
     def test_split_architecture_and_versions(self):
         packages, requirements = parse_srcinfo("""
@@ -216,6 +219,35 @@ class PublishTests(unittest.TestCase):
             info.size = len(content)
             archive.addfile(info, io.BytesIO(content))
         return target.name
+
+    def test_container_ownership_exception_is_scoped_to_workspace(self):
+        env = {
+            **os.environ,
+            "GIT_TEST_ASSUME_DIFFERENT_OWNER": "1",
+            "GIT_CONFIG_GLOBAL": str(self.case / "gitconfig"),
+            "GIT_CONFIG_SYSTEM": "/dev/null",
+            "GITHUB_WORKSPACE": str(self.repository),
+            "LC_ALL": "C",
+        }
+        before = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"], cwd=self.repository,
+            env=env, text=True, capture_output=True,
+        )
+        self.assertEqual(before.returncode, 128)
+        self.assertIn("dubious ownership", before.stderr)
+        after = subprocess.run(
+            ["sh", "-ec",
+             'git config --global --add safe.directory "$GITHUB_WORKSPACE"\n'
+             "git rev-parse --verify HEAD"],
+            cwd=self.repository, env=env, text=True, capture_output=True,
+        )
+        self.assertEqual(after.returncode, 0, after.stderr)
+        self.assertEqual(after.stdout.strip(), self.commit)
+        configured = subprocess.check_output(
+            ["git", "config", "--global", "--get-all", "safe.directory"],
+            env=env, text=True,
+        ).splitlines()
+        self.assertEqual(configured, [str(self.repository)])
 
     def execute(self, generation, builds, full=False):
         for existing in (self.source / "packages").iterdir():

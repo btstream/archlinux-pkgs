@@ -25,6 +25,7 @@ jobs:
         with:
           persist-credentials: false
       - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git rev-parse --verify HEAD
           bash -n scripts/ci-build.sh
           python -m unittest discover -s tests -v
@@ -85,7 +86,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: 检查 Git 仓库
-        run: git rev-parse --verify HEAD
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git rev-parse --verify HEAD
       - uses: actions/download-artifact@v4
         with:
           name: repository-build
